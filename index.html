@@ -63,6 +63,7 @@
     color:var(--text);
     padding:clamp(14px, 3vw, 28px);
     -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
   }
   .page-wrap{max-width:1440px;margin:0 auto;}
   a{color:var(--accent);}
@@ -96,7 +97,9 @@
     grid-template-columns:clamp(280px, 28vw, 380px) 1fr;
     gap:20px;
     align-items:start;
+    min-width:0;
   }
+  .layout > *{min-width:0;}
   @media (max-width:860px){
     .layout{grid-template-columns:1fr;}
   }
@@ -105,6 +108,7 @@
     border:1px solid var(--border);
     border-radius:12px;
     padding:18px;
+    min-width:0;
   }
   .panel h2{
     font-size:12.5px;
@@ -221,8 +225,9 @@
   .btn-row .btn{flex:1;min-width:110px;}
   input[type=file]{display:none;}
 
-  .results{display:flex;flex-direction:column;gap:16px;}
-  .stat-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;}
+  .results{display:flex;flex-direction:column;gap:16px;min-width:0;container-type:inline-size;container-name:results;}
+  .stat-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;min-width:0;}
+  .stat-card{min-width:0;}
   .stat-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px 18px;}
   .stat-card.best{border-color:var(--good);background:var(--good-soft);}
   .stat-card .label{font-size:12px;color:var(--muted);margin-bottom:8px;letter-spacing:.02em;}
@@ -235,7 +240,50 @@
   .info-box{background:var(--accent-soft);border:1px solid var(--accent);color:var(--text);border-radius:10px;padding:12px 16px;font-size:12.5px;line-height:1.55;margin-top:10px;}
 
   .viz-panel{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px;}
-  .viz-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px;}
+  .viz-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px;cursor:pointer;}
+  .viz-expand-btn{
+    background:var(--panel2);
+    border:1px solid var(--border);
+    color:var(--muted);
+    width:26px;height:26px;border-radius:7px;
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer;font-size:14px;line-height:1;flex-shrink:0;
+  }
+  .viz-expand-btn:hover{border-color:var(--accent);color:var(--text);}
+
+  .viz-modal{
+    display:none;
+    position:fixed;inset:0;z-index:100;
+    background:rgba(0,0,0,.6);
+    align-items:center;justify-content:center;
+    padding:clamp(10px,3vw,32px);
+  }
+  .viz-modal.open{display:flex;}
+  .viz-modal-panel{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:14px;
+    width:min(1400px, 96vw);
+    height:92vh;
+    display:flex;flex-direction:column;
+    padding:16px;
+    box-shadow:0 20px 60px rgba(0,0,0,.5);
+  }
+  .viz-modal-titlebar{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-shrink:0;}
+  .viz-modal-titlebar h2{margin:0;font-size:14px;color:var(--text);text-transform:uppercase;letter-spacing:.06em;}
+  .viz-modal-close{
+    background:var(--panel2);border:1px solid var(--border);color:var(--text);
+    width:30px;height:30px;border-radius:8px;cursor:pointer;font-size:15px;
+  }
+  .viz-modal-close:hover{border-color:var(--danger);color:var(--danger);}
+  .viz-modal-content{flex:1;min-height:0;}
+  .viz-modal-content .viz-body.in-modal{height:100%;display:flex;flex-direction:column;}
+  .viz-modal-content .viz-body.in-modal svg{flex:1;width:100%;height:100% !important;min-height:0;}
+  .viz-modal-content .viz-body.in-modal .viz3d-wrap{flex:1;min-height:0;}
+  .viz-modal-content .viz-body.in-modal #view3d{height:100% !important;}
+  .viz-modal-content .viz-body.in-modal .viz3d-controls,
+  .viz-modal-content .viz-body.in-modal .v3d-hint{flex-shrink:0;}
+
   .viz-header h2{margin:0;font-size:12.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;}
   .legend{display:flex;gap:14px;font-size:11.5px;color:var(--muted);flex-wrap:wrap;}
   .legend span{display:inline-flex;align-items:center;gap:6px;}
@@ -248,9 +296,13 @@
   .footer-note{font-size:11.5px;color:var(--muted2);margin-top:9px;line-height:1.5;font-family:var(--mono);}
   .dim-text{fill:#a9b3c4;font-family:var(--mono);}
   .viz-panel.mini{padding:14px 16px;}
-  .viz-panel.mini svg{height:260px;width:100%;}
-  .viz-row-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start;}
+  .viz-panel.mini svg{height:clamp(190px, 34vh, 260px);width:100%;}
+  .viz-row-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start;min-width:0;}
+  .viz-row-2 > *{min-width:0;}
   @media (max-width:700px){.viz-row-2{grid-template-columns:1fr;}}
+  @container results (max-width: 620px){
+    .viz-row-2{grid-template-columns:1fr;}
+  }
 
   .manual-controls{display:none;}
   .manual-controls.show{display:block;}
@@ -265,7 +317,7 @@
   .viz3d-wrap{position:relative;}
   #view3d{
     width:100%;
-    height:440px;
+    height:clamp(240px, 52vh, 440px);
     display:block;
     border-radius:10px;
     border:1px solid var(--border);
@@ -372,8 +424,8 @@
           <div class="field"><label>Справа</label><input type="number" id="marginR" value="0" min="0" step="1"></div>
         </div>
         <div class="row2">
-          <div class="field"><label>Спереди</label><input type="number" id="marginF" value="0" min="0" step="1"></div>
-          <div class="field"><label>Сзади</label><input type="number" id="marginB" value="0" min="0" step="1"></div>
+          <div class="field"><label>Сзади</label><input type="number" id="marginF" value="0" min="0" step="1"></div>
+          <div class="field"><label>Спереди</label><input type="number" id="marginB" value="0" min="0" step="1"></div>
         </div>
         <div class="small-note">Если у полки есть бортик, крепёж или зона обслуживания — задайте отступ. По умолчанию блоки можно ставить вплотную к краю полки (0).</div>
       </div>
@@ -416,41 +468,65 @@
     <div class="stat-cards" id="statCards"></div>
 
     <div class="viz-panel" id="viz3dPanel" style="display:none;">
-      <div class="viz-header"><h2>3D-визуализация</h2></div>
-      <div class="viz3d-wrap">
-        <canvas id="view3d"></canvas>
-        <div class="loading3d" id="loading3d">Загрузка 3D-движка…</div>
+      <div class="viz-header" data-expand="3d">
+        <h2>3D-визуализация</h2>
+        <button class="viz-expand-btn" data-expand="3d" title="Развернуть на весь экран">⤢</button>
       </div>
-      <div class="viz3d-controls">
-        <button class="v3d-btn active" data-view="iso">Изометрия</button>
-        <button class="v3d-btn" data-view="top">Сверху</button>
-        <button class="v3d-btn" data-view="front">Спереди</button>
-        <button class="v3d-btn" data-view="side">Сбоку</button>
+      <div class="viz-body" id="viz3dBody">
+        <div class="viz3d-wrap">
+          <canvas id="view3d"></canvas>
+          <div class="loading3d" id="loading3d">Загрузка 3D-движка…</div>
+        </div>
+        <div class="viz3d-controls">
+          <button class="v3d-btn active" data-view="iso">Изометрия</button>
+          <button class="v3d-btn" data-view="top">Сверху</button>
+          <button class="v3d-btn" data-view="front">Спереди</button>
+          <button class="v3d-btn" data-view="side">Сбоку</button>
+        </div>
+        <div class="v3d-hint">Зажмите левую кнопку мыши — вращение, колесо — масштаб, правая кнопка — перемещение.</div>
       </div>
-      <div class="v3d-hint">Зажмите левую кнопку мыши — вращение, колесо — масштаб, правая кнопка — перемещение.</div>
     </div>
 
     <div class="viz-row-2">
       <div class="viz-panel mini" id="vizPanel" style="display:none;">
-        <div class="viz-header">
+        <div class="viz-header" data-expand="top">
           <h2>Вид сверху — раскладка на полке</h2>
           <div class="legend">
             <span><i class="swatch" style="background:#4f8cff"></i> Блок</span>
             <span><i class="swatch" style="background:#20242e;border:1px dashed #5f6675"></i> Отступ</span>
           </div>
+          <button class="viz-expand-btn" data-expand="top" title="Развернуть на весь экран">⤢</button>
         </div>
-        <svg id="topView" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet"></svg>
+        <div class="viz-body" id="vizBody">
+          <svg id="topView" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet"></svg>
+        </div>
       </div>
 
       <div class="viz-panel mini" id="sideVizPanel" style="display:none;">
-        <div class="viz-header"><h2>Вид сбоку — использование высоты</h2></div>
-        <svg id="sideView" viewBox="0 0 100 60" preserveAspectRatio="xMidYMid meet"></svg>
+        <div class="viz-header" data-expand="side">
+          <h2>Вид сбоку — использование высоты</h2>
+          <button class="viz-expand-btn" data-expand="side" title="Развернуть на весь экран">⤢</button>
+        </div>
+        <div class="viz-body" id="sideVizBody">
+          <svg id="sideView" viewBox="0 0 100 60" preserveAspectRatio="xMidYMid meet"></svg>
+        </div>
       </div>
     </div>
     <div class="footer-note" id="placementSummary"></div>
 
   </div>
 </div>
+
+<div class="viz-modal" id="vizModal">
+  <div class="viz-modal-panel">
+    <div class="viz-modal-titlebar">
+      <h2 id="vizModalTitle"></h2>
+      <button class="viz-modal-close" id="vizModalClose" title="Закрыть" type="button">✕</button>
+    </div>
+    <div class="viz-modal-content" id="vizModalContent"></div>
+  </div>
+</div>
+
 
 </div>
 
@@ -1521,6 +1597,37 @@
   let mode = 'auto';        // 'auto' | 'manual'
   let manualHoriz = '0';    // '0' | '90'
 
+  // ---------- persist parameters so nothing is lost on reload ----------
+  // Cookies are frequently blocked or silently no-op on file:// pages (which is how this
+  // tool is meant to be opened locally), so localStorage is used instead — it works
+  // reliably both for a local file and once the page is hosted (e.g. on GitHub Pages).
+  const STORAGE_KEY = 'shelfPackingParams';
+
+  function collectParams(){
+    const p = {mode, manualHoriz};
+    Object.keys(els).forEach(k => p[k] = els[k].value);
+    return p;
+  }
+  function saveParams(){
+    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(collectParams())); }catch(e){ /* storage may be unavailable (e.g. private mode) — ignore */ }
+  }
+  function applyParams(p){
+    if(!p || typeof p !== 'object') return;
+    Object.keys(els).forEach(k=>{ if(p[k] !== undefined) els[k].value = p[k]; });
+    mode = p.mode === 'manual' ? 'manual' : 'auto';
+    manualHoriz = p.manualHoriz === '90' ? '90' : '0';
+    document.querySelectorAll('#modeToggle .toggle-btn').forEach(b=>b.classList.toggle('active', b.dataset.mode===mode));
+    document.querySelectorAll('#horizToggle .toggle-btn').forEach(b=>b.classList.toggle('active', b.dataset.val===manualHoriz));
+    $('manualControls').classList.toggle('show', mode==='manual');
+    $('modeNote').textContent = mode==='auto' ? '' : 'Ориентация задаётся вручную и применяется сразу ко всем блокам.';
+  }
+  function loadParams(){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if(raw) applyParams(JSON.parse(raw));
+    }catch(e){ /* ignore corrupt or unavailable storage */ }
+  }
+
   // ---------- mode / orientation toggles ----------
   $('modeToggle').addEventListener('click', e=>{
     const btn = e.target.closest('.toggle-btn');
@@ -1532,6 +1639,7 @@
     $('modeNote').textContent = mode==='auto'
       ? ''
       : 'Ориентация задаётся вручную и применяется сразу ко всем блокам.';
+    saveParams();
     compute();
   });
 
@@ -1541,6 +1649,7 @@
     [...btn.parentElement.children].forEach(b=>b.classList.remove('active'));
     btn.classList.add('active');
     manualHoriz = btn.dataset.val;
+    saveParams();
     compute();
   });
 
@@ -1582,8 +1691,8 @@
   }
 
   lengthFields.forEach(el=>{
-    el.addEventListener('input', compute);
-    el.addEventListener('change', ()=>{ reformatField(el); compute(); });
+    el.addEventListener('input', ()=>{ saveParams(); compute(); });
+    el.addEventListener('change', ()=>{ reformatField(el); saveParams(); compute(); });
   });
 
   els.unit.addEventListener('change', ()=>{
@@ -1602,6 +1711,7 @@
       prevUnit = newUnit;
     }
     updateStepAttrs();
+    saveParams();
     compute();
   });
 
@@ -1753,6 +1863,9 @@
     const leftoverD = Math.max(0, availD - maxZ);
     const leftoverH = shelfH - blockH;
 
+    const areaShelf = shelfW*shelfD;
+    const areaUsed = count*blockW*blockD; // footprint area is the same regardless of rotation
+    const areaPct = areaShelf>0 ? (areaUsed/areaShelf*100) : 0;
     const volumeShelf = shelfW*shelfD*shelfH;
     const volumeUsed = count*blockW*blockD*blockH;
     const volumePct = volumeShelf>0 ? (volumeUsed/volumeShelf*100) : 0;
@@ -1772,6 +1885,10 @@
         <div class="label">Блоков на полке</div>
         <div class="value">${count}</div>
         <div class="detail">${orientDetail}</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Площадь полки занята</div>
+        <div class="value">${fmtPct(areaPct)}%</div>
       </div>
       <div class="stat-card">
         <div class="label">Объём полки занят</div>
@@ -1795,6 +1912,10 @@
       appendBox('info-box', `Над блоками остаётся ${fmt(leftoverH)} ${unit} свободной высоты — она не используется, так как штабелирование в несколько слоёв не предусмотрено.`);
     }
 
+    $('vizPanel').style.display = '';
+    $('sideVizPanel').style.display = '';
+    $('viz3dPanel').style.display = '';
+
     drawTopView(r);
     drawSideView(shelfH, blockH);
     // The 3D scene keeps its own camera framing between renders (see cameraInitialized),
@@ -1805,11 +1926,10 @@
     const placementsMM = placements.map(p => ({
       x: p.x*mmFactor, z: p.z*mmFactor, fw: p.fw*mmFactor, fd: p.fd*mmFactor, horiz: p.horiz
     }));
-    render3D(shelfW*mmFactor, shelfD*mmFactor, shelfH*mmFactor, blockH*mmFactor, gapX*mmFactor, marginL*mmFactor, marginF*mmFactor, placementsMM);
-
-    $('vizPanel').style.display = '';
-    $('sideVizPanel').style.display = '';
-    $('viz3dPanel').style.display = '';
+    // The panels above are made visible *before* rendering (not after): initializing
+    // three.js while its canvas is still display:none would measure a zero-width/height
+    // container and leave the scene permanently mis-sized until some later resize.
+    render3D(shelfW*mmFactor, shelfD*mmFactor, shelfH*mmFactor, blockH*mmFactor, gapX*mmFactor, marginL*mmFactor, r.marginR*mmFactor, marginF*mmFactor, r.marginB*mmFactor, placementsMM);
 
     $('placementSummary').textContent =
       `Полка ${fmt(shelfW)}×${fmt(shelfD)}×${fmt(shelfH)} ${unit} (Ш×Г×В). Высота блока ${fmt(blockH)} ${unit}. Зазоры: ${fmt(gapX)}×${fmt(gapZ)} ${unit}. Отступы от стенок учтены. Светлая полоса на блоке — фронтальная сторона (ширина × высота).`;
@@ -1832,6 +1952,23 @@
       <text class="dim-text" x="${x}" y="${midY}" font-size="${fs}" text-anchor="middle" transform="rotate(-90 ${x} ${midY})">${label}</text>`;
   }
 
+  // Dashed extension lines marking a margin gap between the shelf edge and the working area —
+  // drawn only where the corresponding margin is non-zero, right where it meets the shelf outline.
+  function marginDimH(x1, x2, y, label){
+    const tick = 0.9;
+    return `<line x1="${x1}" y1="${y-tick}" x2="${x1}" y2="${y+tick}" stroke="#5f6675" stroke-width="0.3"/>
+      <line x1="${x2}" y1="${y-tick}" x2="${x2}" y2="${y+tick}" stroke="#5f6675" stroke-width="0.3"/>
+      <line x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" stroke="#5f6675" stroke-width="0.3" stroke-dasharray="0.8,0.8"/>
+      <text class="dim-text" x="${(x1+x2)/2}" y="${y-1.4}" font-size="2.4" text-anchor="middle">${label}</text>`;
+  }
+  function marginDimV(x, y1, y2, label){
+    const tick = 0.9, midY = (y1+y2)/2;
+    return `<line x1="${x-tick}" y1="${y1}" x2="${x+tick}" y2="${y1}" stroke="#5f6675" stroke-width="0.3"/>
+      <line x1="${x-tick}" y1="${y2}" x2="${x+tick}" y2="${y2}" stroke="#5f6675" stroke-width="0.3"/>
+      <line x1="${x}" y1="${y1}" x2="${x}" y2="${y2}" stroke="#5f6675" stroke-width="0.3" stroke-dasharray="0.8,0.8"/>
+      <text class="dim-text" x="${x+2.6}" y="${midY}" font-size="2.4" text-anchor="start">${label}</text>`;
+  }
+
   // The block's own "front" (width × height) faces along its own depth axis. horiz='0' keeps
   // width on shelf-X / depth on shelf-Z, so the front edge is the far (+Z) edge of the
   // rectangle — the bottom edge in this top view. horiz='90' swaps that, so the front edge
@@ -1852,6 +1989,11 @@
     if(marginL>0 || marginR>0 || marginF>0 || marginB>0){
       html += `<rect x="${ox+marginL*scale}" y="${oy+marginF*scale}" width="${(shelfW-marginL-marginR)*scale}" height="${(shelfD-marginF-marginB)*scale}" fill="none" stroke="#5f6675" stroke-width="0.3" stroke-dasharray="1,1"/>`;
     }
+    const midY = oy + shelfD*scale/2;
+    if(marginL>0) html += marginDimH(ox, ox+marginL*scale, midY, fmt(marginL));
+    if(marginR>0) html += marginDimH(ox+(shelfW-marginR)*scale, ox+shelfW*scale, midY, fmt(marginR));
+    if(marginF>0) html += marginDimV(ox+shelfW*scale*0.25, oy, oy+marginF*scale, fmt(marginF));
+    if(marginB>0) html += marginDimV(ox+shelfW*scale*0.75, oy+(shelfD-marginB)*scale, oy+shelfD*scale, fmt(marginB));
 
     const frontStroke = 0.9;
     placements.forEach(p=>{
@@ -1912,13 +2054,13 @@
       return;
     }
     const wrap = canvas.parentElement;
-    const width = wrap.clientWidth, height = 440;
+    const width = wrap.clientWidth, height = wrap.clientHeight || 440;
 
     three.scene = new THREE.Scene();
     three.camera = new THREE.PerspectiveCamera(45, width/height, 1, 100000);
 
     three.renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:true});
-    three.renderer.setSize(width, height);
+    three.renderer.setSize(width, height, false);
     three.renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
 
     three.scene.add(new THREE.AmbientLight(0xffffff, 0.65));
@@ -1948,13 +2090,21 @@
     }
     animate();
 
-    window.addEventListener('resize', ()=>{
-      if(!three.ready) return;
-      const w = wrap.clientWidth, h = 440;
-      three.camera.aspect = w/h;
-      three.camera.updateProjectionMatrix();
-      three.renderer.setSize(w,h);
-    });
+    window.addEventListener('resize', resizeThreeCanvas);
+    // Safety net: if the container was measured as zero-size at the exact instant of
+    // creation (e.g. a layout/paint race), correct the sizing on the next frame.
+    requestAnimationFrame(resizeThreeCanvas);
+  }
+
+  function resizeThreeCanvas(){
+    if(!three.ready) return;
+    const wrap = $('view3d').parentElement;
+    const w = wrap.clientWidth, h = wrap.clientHeight;
+    if(w<=0 || h<=0) return;
+    three.camera.aspect = w/h;
+    three.camera.updateProjectionMatrix();
+    three.renderer.setSize(w,h,false);
+    three.renderer.render(three.scene, three.camera);
   }
 
   // Base material set for a block; index order for THREE.BoxGeometry groups is [+X,-X,+Y,-Y,+Z,-Z].
@@ -1970,7 +2120,7 @@
   }
 
   // Axis mapping: shelf width -> X, shelf height -> Y (up), shelf depth -> Z. Single layer only.
-  function render3D(shelfW, shelfD, shelfH, blockH, gapX, marginL, marginF, placements){
+  function render3D(shelfW, shelfD, shelfH, blockH, gapX, marginL, marginR, marginF, marginB, placements){
     initThree();
     if(!three.ready) return;
     lastShelfDims = {w:shelfW, h:shelfH, d:shelfD};
@@ -1999,6 +2149,28 @@
     leftWall.rotation.y = Math.PI/2;
     leftWall.position.set(-shelfW/2, shelfH/2, 0);
     three.shelfGroup.add(leftWall);
+
+    // Dashed outline on the floor marking where the usable (margin-inset) area begins.
+    if(marginL>0 || marginR>0 || marginF>0 || marginB>0){
+      const innerW = shelfW - marginL - marginR, innerD = shelfD - marginF - marginB;
+      if(innerW>0 && innerD>0){
+        const x0 = -shelfW/2+marginL, x1 = x0+innerW;
+        const z0 = -shelfD/2+marginF, z1 = z0+innerD;
+        const y = 0.7;
+        const pts = [
+          new THREE.Vector3(x0,y,z0), new THREE.Vector3(x1,y,z0),
+          new THREE.Vector3(x1,y,z0), new THREE.Vector3(x1,y,z1),
+          new THREE.Vector3(x1,y,z1), new THREE.Vector3(x0,y,z1),
+          new THREE.Vector3(x0,y,z1), new THREE.Vector3(x0,y,z0)
+        ];
+        const dashLen = Math.max(shelfW, shelfD) * 0.012;
+        const marginGeo = new THREE.BufferGeometry().setFromPoints(pts);
+        const marginMat = new THREE.LineDashedMaterial({color:0x8fa3c9, dashSize:dashLen, gapSize:dashLen});
+        const marginLines = new THREE.LineSegments(marginGeo, marginMat);
+        marginLines.computeLineDistances();
+        three.shelfGroup.add(marginLines);
+      }
+    }
 
     const blockEdgeMat = new THREE.LineBasicMaterial({color:0x16306b});
     const startX = -shelfW/2 + marginL;
@@ -2095,6 +2267,59 @@
     });
   });
 
+  // ---------- expand viz panels to near-fullscreen ----------
+  let modalOpenFor = null; // 'top' | 'side' | '3d'
+
+  function bodyElFor(kind){
+    return kind === '3d' ? $('viz3dBody') : (kind === 'top' ? $('vizBody') : $('sideVizBody'));
+  }
+  function titleFor(kind){
+    return kind === '3d' ? '3D-визуализация'
+      : kind === 'top' ? 'Вид сверху — раскладка на полке'
+      : 'Вид сбоку — использование высоты';
+  }
+
+  function openVizModal(kind){
+    if(modalOpenFor) closeVizModal();
+    const bodyEl = bodyElFor(kind);
+    bodyEl._modalParent = bodyEl.parentNode;
+    bodyEl._modalNext = bodyEl.nextSibling;
+    $('vizModalTitle').textContent = titleFor(kind);
+    $('vizModalContent').appendChild(bodyEl);
+    bodyEl.classList.add('in-modal');
+    $('vizModal').classList.add('open');
+    modalOpenFor = kind;
+    if(kind === '3d') requestAnimationFrame(()=> requestAnimationFrame(resizeThreeCanvas));
+  }
+
+  function closeVizModal(){
+    if(!modalOpenFor) return;
+    const bodyEl = bodyElFor(modalOpenFor);
+    bodyEl.classList.remove('in-modal');
+    if(bodyEl._modalNext) bodyEl._modalParent.insertBefore(bodyEl, bodyEl._modalNext);
+    else bodyEl._modalParent.appendChild(bodyEl);
+    $('vizModal').classList.remove('open');
+    const wasModal3d = modalOpenFor === '3d';
+    modalOpenFor = null;
+    if(wasModal3d) requestAnimationFrame(()=> requestAnimationFrame(resizeThreeCanvas));
+  }
+
+  document.querySelectorAll('.viz-expand-btn').forEach(btn=>{
+    btn.addEventListener('click', e=>{
+      e.stopPropagation();
+      openVizModal(btn.dataset.expand);
+    });
+  });
+  document.querySelectorAll('.viz-header').forEach(h=>{
+    h.addEventListener('click', e=>{
+      if(e.target.closest('.viz-expand-btn')) return;
+      openVizModal(h.dataset.expand);
+    });
+  });
+  $('vizModalClose').addEventListener('click', closeVizModal);
+  $('vizModal').addEventListener('click', e=>{ if(e.target.id === 'vizModal') closeVizModal(); });
+  document.addEventListener('keydown', e=>{ if(e.key === 'Escape') closeVizModal(); });
+
   // ---------- theme toggle ----------
   function applyTheme(theme){
     document.documentElement.setAttribute('data-theme', theme);
@@ -2108,6 +2333,8 @@
   applyTheme('dark');
 
   // ---------- boot ----------
+  loadParams();
+  prevUnit = els.unit.value;
   updateStepAttrs();
   compute();
 })();
