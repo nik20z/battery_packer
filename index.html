@@ -312,8 +312,8 @@
   .manual-controls.show{display:block;}
   code{background:var(--panel2);padding:1px 5px;border-radius:4px;font-family:var(--mono);font-size:.92em;}
 
-  .roadmap{margin-top:18px;padding-top:14px;border-top:1px dashed var(--border);}
-  .roadmap .rm-title{font-size:11px;color:var(--muted2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;}
+  .project-action{margin-top:18px;padding-top:14px;border-top:1px dashed var(--border);}
+  .project-action .rm-title{font-size:11px;color:var(--muted2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;}
 
   footer.page{margin-top:26px;color:var(--muted2);font-size:11.5px;line-height:1.6;font-family:var(--mono);}
   footer.page a{color:var(--muted);}
@@ -418,7 +418,7 @@
 <div class="page-wrap">
 <header class="page">
   <div class="title-block">
-    <h1>Раскладка АКБ-блоков на полке</h1>
+    <h1>Раскладка блоков на полке</h1>
   </div>
   <button class="theme-toggle" id="themeToggle" type="button" title="Светлая/тёмная тема">
     <span class="dot" id="themeIcon">🌙</span>
@@ -446,13 +446,12 @@
       <div class="small-note" id="unitHint">В миллиметрах допустимы только целые числа.</div>
     </div>
 
-    <div class="group-title">Параметры блока АКБ</div>
+    <div class="group-title">Параметры блока</div>
     <div class="row3">
       <div class="field"><label>Ширина</label><input type="number" id="blockW" value="190" min="0" step="1"></div>
       <div class="field"><label>Глубина</label><input type="number" id="blockD" value="380" min="0" step="1"></div>
       <div class="field"><label>Высота</label><input type="number" id="blockH" value="90" min="0" step="1"></div>
     </div>
-    <div class="small-note">Высота блока фиксирована: переворачивать блок «на бок» или «вверх ногами» нельзя — только поворот основания в плоскости полки.</div>
 
     <div class="group-title">Зазоры между блоками</div>
     <div class="row2">
@@ -461,7 +460,7 @@
     </div>
 
     <details class="adv" id="marginDetails">
-      <summary>Отступы от стенок шкафа</summary>
+      <summary>Отступы от стенок</summary>
       <div class="adv-body">
         <div class="row2">
           <div class="field"><label>Слева</label><input type="number" id="marginL" value="0" min="0" step="1"></div>
@@ -494,7 +493,7 @@
       </div>
     </div>
 
-    <div class="group-title">Выравнивание блоков</div>
+    <div class="group-title">Выравнивание</div>
     <div class="field">
       <label>По ширине (X)</label>
       <div class="toggle-row" id="alignHToggle">
@@ -513,8 +512,7 @@
     </div>
     <div class="small-note">Определяет, к какому краю рабочей области прижимается вся группа блоков.</div>
 
-    <div class="roadmap">
-      <div class="rm-title">В разработке</div>
+    <div class="project-action">
       <div class="btn-row">
         <button class="btn" id="saveBtn" title="Скачать файл проекта">Сохранить проект...</button>
         <button class="btn" id="loadBtn" title="Открыть файл проекта">Открыть проект...</button>
@@ -1736,7 +1734,7 @@
     const dateStr = new Date().toISOString().slice(0,10);
     
     a.href = url;
-    a.download = `shelf_project_${dateStr}.json`;
+    a.download = `battery_packer_${dateStr}.json`;
     a.click();
     URL.revokeObjectURL(url);
   }
@@ -2075,7 +2073,7 @@
       <div class="stat-card">
         <div class="label">Использование высоты:</div>
         <div class="value center">${fmtPct(heightPct)}%</div>
-        <div class="detail">Блок ${fmt(blockH)} ${unit} из ${fmt(shelfH)} ${unit}.</div>
+        <div class="detail">${fmt(blockH)} ${unit} из ${fmt(shelfH)} ${unit}.</div>
       </div>
     `;
 
