@@ -226,12 +226,16 @@
   input[type=file]{display:none;}
 
   .results{display:flex;flex-direction:column;gap:16px;min-width:0;container-type:inline-size;container-name:results;}
-  .stat-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;min-width:0;}
+  .stat-cards{display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr;gap:12px;min-width:0;}
+  @container results (max-width: 560px){
+    .stat-cards{grid-template-columns:1fr;}
+  }
   .stat-card{min-width:0;}
   .stat-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px 18px;}
   .stat-card.best{border-color:var(--good);background:var(--good-soft);}
   .stat-card .label{font-size:12px;color:var(--muted);margin-bottom:8px;letter-spacing:.02em;}
   .stat-card .value{font-size:34px;font-weight:700;line-height:1;font-family:var(--mono);}
+  .stat-card .value.center{text-align:center;}
   .stat-card .detail{font-size:12px;color:var(--muted);margin-top:8px;line-height:1.5;}
 
   .error-box{background:var(--danger-bg);border:1px solid var(--danger);color:var(--text);border-radius:10px;padding:14px 16px;font-size:13.5px;line-height:1.55;}
@@ -367,6 +371,46 @@
     font-size:13px;
     flex-shrink:0;
   }
+  /* Стили для всплывающих уведомлений (Toast) */
+  .toast {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-100px);
+    background: var(--panel);
+    color: var(--text);
+    padding: 12px 24px;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    border: 1px solid var(--border);
+    z-index: 10000;
+    font-family: var(--sans);
+    font-size: 14px;
+    font-weight: 500;
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease;
+    opacity: 0;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+
+  .toast.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+  }
+
+  .toast-hide {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-20px) !important;
+  }
+
+  .toast-success {
+    border-left: 4px solid var(--good);
+  }
+
+  .toast-error {
+    border-left: 4px solid var(--danger);
+    background: var(--danger-bg);
+  }
 </style>
 </head>
 <body>
@@ -448,16 +492,35 @@
           <div class="toggle-btn" data-val="90">90° — Ш ↔ Г</div>
         </div>
       </div>
-      <div class="small-note">При 90° местами меняются ширина и глубина основания блока (высота блока не меняется).</div>
     </div>
+
+    <div class="group-title">Выравнивание блоков</div>
+    <div class="field">
+      <label>По ширине (X)</label>
+      <div class="toggle-row" id="alignHToggle">
+        <div class="toggle-btn active" data-val="left">Слева</div>
+        <div class="toggle-btn" data-val="center">По центру</div>
+        <div class="toggle-btn" data-val="right">Справа</div>
+      </div>
+    </div>
+    <div class="field">
+      <label>По глубине (Z)</label>
+      <div class="toggle-row" id="alignVToggle">
+        <div class="toggle-btn active" data-val="back">Сзади</div>
+        <div class="toggle-btn" data-val="center">По центру</div>
+        <div class="toggle-btn" data-val="front">Спереди</div>
+      </div>
+    </div>
+    <div class="small-note">Определяет, к какому краю рабочей области прижимается вся группа блоков.</div>
 
     <div class="roadmap">
       <div class="rm-title">В разработке</div>
       <div class="btn-row">
-        <button class="btn" disabled title="В разработке">Сохранить проект…</button>
-        <button class="btn" disabled title="В разработке">Открыть проект…</button>
+        <button class="btn" id="saveBtn" title="Скачать файл проекта">Сохранить проект...</button>
+        <button class="btn" id="loadBtn" title="Открыть файл проекта">Открыть проект...</button>
       </div>
-      <div class="small-note">Сохранение/открытие проектов (несколько полок, сравнение вариантов) появится позже.</div>
+      <!-- Невидимый инпут для выбора файла -->
+      <input type="file" id="fileInput" accept=".json">
     </div>
   </div>
 
@@ -1596,6 +1659,8 @@
 
   let mode = 'auto';        // 'auto' | 'manual'
   let manualHoriz = '0';    // '0' | '90'
+  let alignH = 'left';      // 'left' | 'center' | 'right'  (по ширине, ось X)
+  let alignV = 'back';      // 'back' | 'center' | 'front'  (по глубине, ось Z)
 
   // ---------- persist parameters so nothing is lost on reload ----------
   // Cookies are frequently blocked or silently no-op on file:// pages (which is how this
@@ -1604,7 +1669,7 @@
   const STORAGE_KEY = 'shelfPackingParams';
 
   function collectParams(){
-    const p = {mode, manualHoriz};
+    const p = {mode, manualHoriz, alignH, alignV};
     Object.keys(els).forEach(k => p[k] = els[k].value);
     return p;
   }
@@ -1616,8 +1681,12 @@
     Object.keys(els).forEach(k=>{ if(p[k] !== undefined) els[k].value = p[k]; });
     mode = p.mode === 'manual' ? 'manual' : 'auto';
     manualHoriz = p.manualHoriz === '90' ? '90' : '0';
+    alignH = ['left','center','right'].includes(p.alignH) ? p.alignH : 'left';
+    alignV = ['back','center','front'].includes(p.alignV) ? p.alignV : 'back';
     document.querySelectorAll('#modeToggle .toggle-btn').forEach(b=>b.classList.toggle('active', b.dataset.mode===mode));
     document.querySelectorAll('#horizToggle .toggle-btn').forEach(b=>b.classList.toggle('active', b.dataset.val===manualHoriz));
+    document.querySelectorAll('#alignHToggle .toggle-btn').forEach(b=>b.classList.toggle('active', b.dataset.val===alignH));
+    document.querySelectorAll('#alignVToggle .toggle-btn').forEach(b=>b.classList.toggle('active', b.dataset.val===alignV));
     $('manualControls').classList.toggle('show', mode==='manual');
     $('modeNote').textContent = mode==='auto' ? '' : 'Ориентация задаётся вручную и применяется сразу ко всем блокам.';
   }
@@ -1627,6 +1696,87 @@
       if(raw) applyParams(JSON.parse(raw));
     }catch(e){ /* ignore corrupt or unavailable storage */ }
   }
+
+   // ---------- Сохранение и загрузка проектов ----------
+  
+  const saveBtn = $('saveBtn');
+  const loadBtn = $('loadBtn');
+  const fileInput = $('fileInput');
+
+  // Функция для показа всплывающего уведомления
+  function showToast(message, type = 'success') {
+    const toast = document.createElement('div');
+    toast.textContent = message;
+    toast.className = `toast toast-${type}`;
+    document.body.appendChild(toast);
+
+    // Класс .show добавляем отдельным кадром — иначе браузер схлопывает
+    // начальное и конечное состояние в одно, transition не проигрывается,
+    // и уведомление остаётся невидимым (opacity:0, translateY(-100px)).
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => toast.classList.add('show'));
+    });
+
+    // Удаляем через 3 секунды
+    setTimeout(() => {
+      toast.classList.add('toast-hide');
+      setTimeout(() => toast.remove(), 500);
+    }, 3000);
+  }
+
+  // Функция для скачивания файла
+  function saveProject() {
+    const projectData = collectParams(); 
+    // Мы больше НЕ добавляем сюда тему (data.theme)
+
+    const jsonString = JSON.stringify(projectData, null, 2);
+    const blob = new Blob([jsonString], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const dateStr = new Date().toISOString().slice(0,10);
+    
+    a.href = url;
+    a.download = `shelf_project_${dateStr}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  // Функция для загрузки файла
+  function loadProject(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        const data = JSON.parse(e.target.result);
+        
+        applyParams(data);
+        
+        Object.keys(els).forEach(k => {
+          if (data[k] !== undefined) {
+            els[k].value = data[k];
+          }
+        });
+
+        // Тему НЕ восстанавливаем, оставляем текущую
+        updateStepAttrs();
+        saveParams(); 
+        compute();
+        
+        showToast('Проект успешно загружен!'); // Используем наше новое уведомление
+      } catch (err) {
+        console.error(err);
+        showToast('Ошибка: неверный формат файла', 'error');
+      }
+    };
+    reader.readAsText(file);
+    fileInput.value = '';
+  }
+
+  saveBtn.addEventListener('click', saveProject);
+  loadBtn.addEventListener('click', () => fileInput.click());
+  fileInput.addEventListener('change', loadProject);
 
   // ---------- mode / orientation toggles ----------
   $('modeToggle').addEventListener('click', e=>{
@@ -1649,6 +1799,26 @@
     [...btn.parentElement.children].forEach(b=>b.classList.remove('active'));
     btn.classList.add('active');
     manualHoriz = btn.dataset.val;
+    saveParams();
+    compute();
+  });
+
+  $('alignHToggle').addEventListener('click', e=>{
+    const btn = e.target.closest('.toggle-btn');
+    if(!btn) return;
+    [...btn.parentElement.children].forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    alignH = btn.dataset.val;
+    saveParams();
+    compute();
+  });
+
+  $('alignVToggle').addEventListener('click', e=>{
+    const btn = e.target.closest('.toggle-btn');
+    if(!btn) return;
+    [...btn.parentElement.children].forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    alignV = btn.dataset.val;
     saveParams();
     compute();
   });
@@ -1863,6 +2033,14 @@
     const leftoverD = Math.max(0, availD - maxZ);
     const leftoverH = shelfH - blockH;
 
+    // Сдвигаем всю группу блоков внутри рабочей области согласно выбранному
+    // выравниванию (по умолчанию — слева/сзади, как и раньше).
+    const shiftX = alignH==='center' ? leftoverW/2 : (alignH==='right' ? leftoverW : 0);
+    const shiftZ = alignV==='center' ? leftoverD/2 : (alignV==='front' ? leftoverD : 0);
+    if(shiftX>0 || shiftZ>0){
+      placements.forEach(p=>{ p.x += shiftX; p.z += shiftZ; });
+    }
+
     const areaShelf = shelfW*shelfD;
     const areaUsed = count*blockW*blockD; // footprint area is the same regardless of rotation
     const areaPct = areaShelf>0 ? (areaUsed/areaShelf*100) : 0;
@@ -1875,9 +2053,9 @@
     if(mode === 'manual'){
       orientDetail = `Ориентация задана вручную: ${manualHoriz==='0' ? 'без поворота (0°)' : 'повёрнуто на 90°'} для всех блоков.`;
     } else if(mixed){
-      orientDetail = `Авто-раскладка: ${count0} без поворота + ${count90} повёрнуто на 90° — так на полку помещается больше.`;
+      orientDetail = `Авто-раскладка: ${count0} без поворота + ${count90} повёрнуто на 90°.`;
     } else {
-      orientDetail = `Авто-раскладка: все блоки ${count90>0 ? 'повёрнуты на 90°' : 'без поворота (0°)'} — так на полку помещается больше.`;
+      orientDetail = `Авто-раскладка: все блоки ${count90>0 ? 'повёрнуты на 90°' : 'без поворота (0°)'}.`;
     }
 
     $('statCards').innerHTML = `
@@ -1887,17 +2065,17 @@
         <div class="detail">${orientDetail}</div>
       </div>
       <div class="stat-card">
-        <div class="label">Площадь полки занята</div>
-        <div class="value">${fmtPct(areaPct)}%</div>
+        <div class="label">Занятая площадь:</div>
+        <div class="value center">${fmtPct(areaPct)}%</div>
       </div>
       <div class="stat-card">
-        <div class="label">Объём полки занят</div>
-        <div class="value">${fmtPct(volumePct)}%</div>
+        <div class="label">Занятый объём:</div>
+        <div class="value center">${fmtPct(volumePct)}%</div>
       </div>
       <div class="stat-card">
-        <div class="label">Высота полки использована</div>
-        <div class="value">${fmtPct(heightPct)}%</div>
-        <div class="detail">Блок ${fmt(blockH)} ${unit} из ${fmt(shelfH)} ${unit}. Остаток ${fmt(leftoverH)} ${unit} над блоками не задействован (один слой).</div>
+        <div class="label">Использование высоты:</div>
+        <div class="value center">${fmtPct(heightPct)}%</div>
+        <div class="detail">Блок ${fmt(blockH)} ${unit} из ${fmt(shelfH)} ${unit}.</div>
       </div>
     `;
 
@@ -1909,7 +2087,7 @@
       appendBox('warn-box', `Остаётся неиспользуемое место в рабочей области: ${msgs.join(' и ')}.`);
     }
     if(leftoverH > blockH*0.5){
-      appendBox('info-box', `Над блоками остаётся ${fmt(leftoverH)} ${unit} свободной высоты — она не используется, так как штабелирование в несколько слоёв не предусмотрено.`);
+      appendBox('info-box', `Над блоками остаётся ${fmt(leftoverH)} ${unit} свободной высоты.`);
     }
 
     $('vizPanel').style.display = '';
@@ -2321,16 +2499,24 @@
   document.addEventListener('keydown', e=>{ if(e.key === 'Escape') closeVizModal(); });
 
   // ---------- theme toggle ----------
+  const THEME_KEY = 'userTheme'; // Ключ для сохранения в localStorage
+
   function applyTheme(theme){
     document.documentElement.setAttribute('data-theme', theme);
     $('themeIcon').textContent = theme === 'light' ? '☀️' : '🌙';
     $('themeLabel').textContent = theme === 'light' ? 'Светлая тема' : 'Тёмная тема';
+    // Сохраняем выбор пользователя
+    localStorage.setItem(THEME_KEY, theme);
   }
+
   $('themeToggle').addEventListener('click', ()=>{
+    // Проверяем текущую тему по атрибуту (по умолчанию считаем dark, если атрибута нет)
     const current = document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
     applyTheme(current === 'light' ? 'dark' : 'light');
   });
-  applyTheme('dark');
+
+  const savedTheme = localStorage.getItem(THEME_KEY) || 'dark';
+  applyTheme(savedTheme);
 
   // ---------- boot ----------
   loadParams();
